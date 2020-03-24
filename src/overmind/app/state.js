@@ -5,21 +5,15 @@ export default {
   showData: false,
   finished: false,
   trellisMask: null,
-  original: null,
   maskedResourceURL: null,
-  maskedResourceURLVerify: null,
-  originalHash: ({ original }, state) => {
-    if (!original) return;
-    return hashJSON(original).hash
-  },
-  valid: ({ originalHash, trellisMask, maskedResourceURLVerify }, state) => {
-    if (maskedResourceURLVerify) {
-      if (maskedResourceURLVerify.match && maskedResourceURLVerify.unchanged) return true;
+  verifyIntegrity: {},
+  original: null,
+  originalVdoc: null,
+  valid: ({ maskedResourceURL, trellisMask, verifyIntegrity }, state) => {
+    if (maskedResourceURL) {
+      if (verifyIntegrity.match && verifyIntegrity.unchanged) return true;
     } else {
-      const urlHash = _.get(trellisMask, 'hashinfo.hash');
-      if (originalHash && urlHash && originalHash == urlHash) {
-        return true;
-      }
+      if (verifyIntegrity.match == true) return true;
     }
     return false;
   }

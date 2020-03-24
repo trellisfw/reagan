@@ -14,13 +14,13 @@ export default {
       open: false,
       showData: false,
       data: ({}, state) => {
-        return state.app.original
+        return state.app.verifyIntegrity.original
       },
       path: ({}, state) => {
         return state.app.resourcePath
       },
       type:  ({}, state) => {
-        const type = _.get(state, 'app.originalResource._type');
+        const type = _.get(state, 'app.original._type');
         if (type == "application/vnd.trellisfw.audit.sqfi.1+json") return "audit";
         if (type == "application/vnd.trellisfw.coi.accord+json") return "coi";
       }

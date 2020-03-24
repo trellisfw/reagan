@@ -21,11 +21,14 @@ export default {
     }
 
     if (url) {
-      //Save trellisMask
+      //Save trellisMask, or maskedResourceURL
+      state.app.trellisMask = null;
+      state.app.maskedResourceURL = null;
       state.app.trellisMask = trellisMask;
       state.app.maskedResourceURL = maskedResourceURL;
-      state.app.maskedResourceURLVerify = null;
+      //Clear data
       state.app.original = null;
+      state.app.originalVdoc = null;
 
       //Extract host
       const { origin, pathname } = new URL(url)
@@ -33,52 +36,63 @@ export default {
       actions.login.domainChange({ value: origin })
       //Auto-login (connecting via. websocket to oada)
       await actions.login.login()
-      //If maskedResourceURL verify using library
-      if (maskedResourceURL) state.app.maskedResourceURLVerify = await masklink.verifyRemoteResource({url, token: state.oada.token});
+      //Verify using masklink
+      if (maskedResourceURL) state.app.verifyIntegrity = await masklink.verifyRemoteResource({url, token: state.oada.token});
+      if (maskStr) state.app.verifyIntegrity = await masklink.verifyRemote({mask: trellisMask, token: state.oada.token});
+      const verifyIntegrity = state.app.verifyIntegrity;
 
       try {
-        //Get the original data that the link points to (this could be full audit, just the location, etc.)
-        //This is the data that will be displayed in the modal (unless it is a full audit or coi)
-        let response = await actions.oada.get(pathname)
-        if (response.error) throw response.error;
+        let response = null;
         if (maskedResourceURL) {
-          state.app.original = _.clone(state.app.maskedResourceURLVerify.original);
+          /*
+            state.app.verifyIntegrity.original has the reconstructed data we want to show (full audit/coi).
+            Need to get ._meta/vdoc/id to get the masked vdoc id for the data
+            Then get /unmask of that vdoc to get the original vdoc
+            Then get /pdf of the original vdoc
+          */
+          state.app.original = _.clone(verifyIntegrity.original);
+          //Get the id of the masked vdoc
+          response = await actions.oada.get(`${verifyIntegrity.original._id}/_meta/vdoc/_id`)
+          if (response.error) throw response.error;
+          const maskedVdocId = response.data;
+          //Get the original vdoc
+          response = await actions.oada.get(`${maskedVdocId}/unmask`)
+          if (response.error) throw response.error;
+          const originalVdoc = response.data;
+          //Save the original vdoc
+          state.app.originalVdoc = originalVdoc;
         } else {
-          state.app.original = response.data;
+          /*
+            state.app.verifyIntegrity.original contains just the data we want to show in the modal (subset of audit/coi)
+            Need to use resource id from url which points to the original audit/coi to get the original's data (original)
+            Then get the vdoc of the original
+          */
+          //Extract the resourceId from the url given in the query parameter
+          const match = pathname.match(/(\/resources\/[^\/]*)\/?(.*)/i);
+          let resourceId = null;
+          let resourcePath = null; //Path inside the resource
+          if (match) {
+            resourceId = match[1];
+            if (match[2].length > 0) resourcePath = match[2];
+          }
+          state.app.resourcePath = resourcePath; //Not sure why we need this
+          //Get the original (coi/audit unmasked) (not the subset `resourcePath`)
+          response = await actions.oada.get(`${resourceId}`)
+          if (response.error) throw response.error
+          state.app.original = response.data
+          //Get the vdoc of the original audit/coi
+          response = await actions.oada.get(`${resourceId}/_meta/vdoc/_id`)
+          if (response.error) throw response.error
+          const originalVdocId = response.data
+          //Get the original vdoc
+          response = await actions.oada.get(`${originalVdocId}`)
+          if (response.error) throw response.error
+          const originalVdoc = response.data
+          //Save the original vdoc
+          state.app.originalVdoc = originalVdoc;
         }
-        //Extract the resource id and internal path from the url given
-        const match = pathname.match(/(\/resources\/[^\/]*)\/?(.*)/i);
-        let resourceId = null;
-        let resourcePath = null; //Path inside the resource
-        if (match) {
-          resourceId = match[1];
-          if (match[2].length > 0) resourcePath = match[2];
-        }
-        state.app.resourcePath = resourcePath;
-        //Get the original resource (if haven't already)
-        let originalResource = null;
-        if (resourcePath == null) {
-          state.app.originalResource = _.clone(state.app.original);
-        } else {
-          const {error: err, data} = await actions.oada.get(`${resourceId}`)
-          if (err) throw err;
-          state.app.originalResource = data;
-        }
-        //Get the _meta/vdoc/_id from the original resource so we can use it to get the pdf
-        response = await actions.oada.get(`${state.app.originalResource._meta._id}/vdoc/_id`)
-        if (response.error) throw response.error;
-        console.log('GET', `${state.app.originalResource._id}/_meta/vdoc/_id`)
-        console.log('Response', response);
-        state.app.documentId = response.data;
-
-        //Get the vdoc
-        response = await actions.oada.get(state.app.documentId)
-        if (response.error) throw response.error;
-        state.app.document = response.data;
-
-        //Open Verified Modal if there is a path
-        if (resourcePath) state.view.Modals.VerifiedModal.open = true;
-
+        //Open Verified Modal if there is a resourcePath
+        if (state.app.resourcePath) state.view.Modals.VerifiedModal.open = true;
       } catch (err) {
         if (!err.response) throw err; //Unknown error
         if (_.get(err, 'response.status') == 403) {

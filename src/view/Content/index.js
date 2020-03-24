@@ -13,12 +13,12 @@ import { Button } from 'semantic-ui-react'
 
 function Content() {
   const { actions, state } = overmind()
-  const originalResource = state.app.originalResource || {};
-  const doc = state.app.document || {};
+  const original = state.app.original || {};
+  const doc = state.app.originalVdoc || {};
 
   var jsonData = null
-  if (originalResource) {
-    jsonData = _.cloneDeep(originalResource)
+  if (original) {
+    jsonData = _.cloneDeep(original)
     if (jsonData._id) delete jsonData._id
     if (jsonData._rev) delete jsonData._rev
     if (jsonData._type) delete jsonData._type
@@ -36,7 +36,7 @@ function Content() {
     }}>
       <div css={{height: 20}}/>
       {
-        (!state.app.maskedResourceURLVerify) ? null :
+        (!state.app.maskedResourceURL) ? null :
         (state.app.valid) ?
         <div css={{fontSize: 25, color: 'green' }}>
           {'Integrity of document verified.'}
@@ -48,13 +48,13 @@ function Content() {
       }
       <div css={{height: 10}}/>
       {
-        originalResource._type == "application/vnd.trellisfw.audit.sqfi.1+json" ? <Audit audit={originalResource} /> : null
+        original._type == "application/vnd.trellisfw.audit.sqfi.1+json" ? <Audit audit={original} /> : null
       }
       {
-        originalResource._type == "application/vnd.trellisfw.coi.accord+json" ? <CoI coi={originalResource} /> : null
+        original._type == "application/vnd.trellisfw.coi.accord+json" ? <CoI coi={original} /> : null
       }
       {
-        doc.pdf ? <PDF oada={state.oada} path={`${state.app.documentId}/pdf`} /> : null
+        doc.pdf ? <PDF oada={state.oada} path={`${doc._id}/pdf`} /> : null
       }
       {
         (!state.app.showData) ? null :
