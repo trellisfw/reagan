@@ -1,11 +1,10 @@
 import _ from 'lodash';
 import Promise from 'bluebird';
 import queryString from 'query-string'
-//import masklink from '@trellisfw/masklink'
+import masklink from '@trellisfw/masklink'
 
 export default {
   async processURL({ state, actions }) {
-    console.log("HERE")
     // Populate domain from url if there is one
     // Parse query parameters
     const { 'trellis-mask': maskStr, 'masked-resource-url': maskedResourceURL } = queryString.parse(window.location.search)
@@ -29,9 +28,9 @@ export default {
       actions.login.domainChange({ value: origin })
       //Auto-login (connecting via. websocket to oada)
       await actions.login.login()
-
+      console.log('url', url)
       //If maskedResourceURL verify using library
-      //if (maskedResourceURL) state.app.maskedResourceURLVerify = await verifyRemoteResource({url, token: state.oada.token});
+      if (maskedResourceURL) state.app.maskedResourceURLVerify = await masklink.verifyRemoteResource({url, token: state.oada.token});
 
       try {
         //Get the original data that the link points to (this could be full audit, just the location, etc.)

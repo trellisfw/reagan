@@ -1,6 +1,6 @@
 {
   "name": "reagan",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "homepage": "https://trellisfw.github.io/reagan/",
   "dependencies": {
@@ -10,7 +10,7 @@
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
-    "@trellisfw/masklink": "^1.0.1",
+    "@trellisfw/masklink": "^1.0.4",
     "@trellisfw/signatures": "^2.1.0",
     "@types/jest": "^25.1.4",
     "@types/node": "^13.9.0",
@@ -44,7 +44,7 @@
   },
   "scripts": {
     "predeploy": "yarn run build",
-    "deploy": "gh-pages -o github -d build",
+    "deploy": "gh-pages -d build",
     "start": "concurrently \"overmind-devtools\" \"react-scripts start\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
