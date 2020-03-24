@@ -11,7 +11,7 @@ import Policies from './Policies'
 function CoI (props) {
   const { coi, document } = props
   return (
-    <Table celled striped>
+    <Table celled striped  css={{maxWidth: 800}}>
       <Table.Body css={{fontSize: 16}}>
         <Producer coi={coi} />
         <Holder coi={coi} />

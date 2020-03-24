@@ -4,6 +4,9 @@ import queryString from 'query-string'
 import masklink from '@trellisfw/masklink'
 
 export default {
+  toggleShowData({ state }) {
+    state.app.showData = !state.app.showData;
+  },
   async processURL({ state, actions }) {
     // Populate domain from url if there is one
     // Parse query parameters
@@ -21,6 +24,8 @@ export default {
       //Save trellisMask
       state.app.trellisMask = trellisMask;
       state.app.maskedResourceURL = maskedResourceURL;
+      state.app.maskedResourceURLVerify = null;
+      state.app.original = null;
 
       //Extract host
       const { origin, pathname } = new URL(url)
@@ -28,7 +33,6 @@ export default {
       actions.login.domainChange({ value: origin })
       //Auto-login (connecting via. websocket to oada)
       await actions.login.login()
-      console.log('url', url)
       //If maskedResourceURL verify using library
       if (maskedResourceURL) state.app.maskedResourceURLVerify = await masklink.verifyRemoteResource({url, token: state.oada.token});
 
@@ -37,8 +41,11 @@ export default {
         //This is the data that will be displayed in the modal (unless it is a full audit or coi)
         let response = await actions.oada.get(pathname)
         if (response.error) throw response.error;
-        state.app.original = response.data;
-
+        if (maskedResourceURL) {
+          state.app.original = _.clone(state.app.maskedResourceURLVerify.original);
+        } else {
+          state.app.original = response.data;
+        }
         //Extract the resource id and internal path from the url given
         const match = pathname.match(/(\/resources\/[^\/]*)\/?(.*)/i);
         let resourceId = null;
@@ -58,8 +65,10 @@ export default {
           state.app.originalResource = data;
         }
         //Get the _meta/vdoc/_id from the original resource so we can use it to get the pdf
-        response = await actions.oada.get(`${resourceId}/_meta/vdoc/_id`)
+        response = await actions.oada.get(`${state.app.originalResource._meta._id}/vdoc/_id`)
         if (response.error) throw response.error;
+        console.log('GET', `${state.app.originalResource._id}/_meta/vdoc/_id`)
+        console.log('Response', response);
         state.app.documentId = response.data;
 
         //Get the vdoc

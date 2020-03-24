@@ -8,6 +8,9 @@ import _ from 'lodash'
 import moment from 'moment'
 import ReactJson from 'react-json-view'
 import Audit from './Audit'
+import CoI from './CoI'
+
+import { Button } from 'semantic-ui-react'
 
 function Content (props) {
   const { actions, state } = overmind()
@@ -39,6 +42,9 @@ function Content (props) {
         {
           (myState.type == "audit") ? <Audit data={myState.data} path={myState.path} /> : null
         }
+        {
+          (myState.type == "coi") ? <CoI data={myState.data} path={myState.path} /> : null
+        }
         {!myState.showData ? (
           ''
         ) : jsonData == null ? (
@@ -54,13 +60,12 @@ function Content (props) {
             enableClipboard={false}
           />
         )}
-        <div
-          css={{ cursor: 'pointer' }}
-          onClick={() =>
-            myActions.toggleShowData(_.get(myState, 'documentKey'))
-          }
-        >
-          {(myState.showData) ? 'HIDE DATA' : 'VIEW DATA'}
+        <div css={{display: 'flex'}}>
+          <Button onClick={() => {myActions.toggleShowData(_.get(myState, 'documentKey'))}}>
+            {(myState.showData) ? 'Hide Data' : 'View Data'}
+          </Button>
+          <div css={{width: 40}}/>
+          <Button onClick={() => {myActions.close()}}>Close</Button>
         </div>
       </div>
     </div>

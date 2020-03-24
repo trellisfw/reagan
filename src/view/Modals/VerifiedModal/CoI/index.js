@@ -4,18 +4,16 @@ import React from 'react'
 import { jsx, css } from '@emotion/core'
 import { Table } from 'semantic-ui-react'
 
-import Producer from './Producer'
-import Holder from './Holder'
-import Policies from './Policies'
+import Location from './Location'
 
 function CoI (props) {
-  const { coi, document } = props
+  const { data, path } = props;
   return (
-    <Table celled striped>
+    <Table definition>
       <Table.Body css={{fontSize: 16}}>
-        <Producer coi={coi} />
-        <Holder coi={coi} />
-        <Policies coi={coi} />
+        {(path == 'producer/location') ? <Location title='Producer Location' data={data} /> : null}
+        {(path == 'holder/location') ? <Location title='Holder Location' data={data} /> : null}
+        {(path == 'insured/location') ? <Location title='Insured Location' data={data} /> : null}
       </Table.Body>
     </Table>
   )
