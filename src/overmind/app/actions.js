@@ -52,11 +52,17 @@ export default {
           */
           state.app.original = _.clone(verifyIntegrity.original);
           //Get the id of the masked vdoc
-          response = await actions.oada.get(`${verifyIntegrity.original._id}/_meta/vdoc/_id`)
+          /*response = await actions.oada.get(`${verifyIntegrity.original._id}/_meta/vdoc/_id`)
           if (response.error) throw response.error;
           const maskedVdocId = response.data;
           //Get the original vdoc
           response = await actions.oada.get(`${maskedVdocId}/unmask`)
+          if (response.error) throw response.error;
+          const originalVdoc = response.data;
+          //Save the original vdoc
+          state.app.originalVdoc = originalVdoc;*/
+
+          response = await actions.oada.get(`${verifyIntegrity.original._meta._id}/vdoc`)
           if (response.error) throw response.error;
           const originalVdoc = response.data;
           //Save the original vdoc
@@ -80,7 +86,7 @@ export default {
           response = await actions.oada.get(`${resourceId}`)
           if (response.error) throw response.error
           state.app.original = response.data
-          //Get the vdoc of the original audit/coi
+          /*//Get the vdoc of the original audit/coi
           response = await actions.oada.get(`${resourceId}/_meta/vdoc/_id`)
           if (response.error) throw response.error
           const originalVdocId = response.data
@@ -88,6 +94,13 @@ export default {
           response = await actions.oada.get(`${originalVdocId}`)
           if (response.error) throw response.error
           const originalVdoc = response.data
+          //Save the original vdoc
+          state.app.originalVdoc = originalVdoc;*/
+          
+          //Get originals's meta's vdoc
+          response = await actions.oada.get(`${state.app.original._meta._id}/vdoc`)
+          if (response.error) throw response.error;
+          const originalVdoc = response.data;
           //Save the original vdoc
           state.app.originalVdoc = originalVdoc;
         }
