@@ -54,7 +54,7 @@ function Content() {
         original._type == "application/vnd.trellisfw.coi.accord+json" ? <CoI coi={original} /> : null
       }
       {
-        doc.pdf ? <PDF oada={state.oada} path={`${doc._id}/pdf`} /> : null
+        doc.pdf ? <PDF oada={state.oada} path={`${doc.pdf._id}`} /> : null
       }
       {
         (!state.app.showData) ? null :
